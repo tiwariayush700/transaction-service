@@ -2,7 +2,6 @@ package impl
 
 import (
 	"context"
-	"gorm.io/gorm"
 	"transaction-service/pkg/logger"
 	"transaction-service/pkg/models"
 	"transaction-service/pkg/repository"
@@ -10,17 +9,18 @@ import (
 )
 
 type transactionImpl struct {
-	repositoryImpl
-	db *gorm.DB
+	// repositoryImpl is the implementation of the repository interface
+	// overrides the generic repository for inheriting crud operation
+	repository.Repository
 }
 
-func (t *transactionImpl) CreateAccount(ctx context.Context, account *models.Account) error {
-	return t.repositoryImpl.Create(ctx, account)
+func (t *transactionImpl) SaveAccount(ctx context.Context, account *models.Account) error {
+	return t.Repository.Create(ctx, account)
 }
 
-func (t *transactionImpl) GetAccountByID(ctx context.Context, accountID int) (*models.Account, error) {
+func (t *transactionImpl) FetchAccountByID(ctx context.Context, accountID int) (*models.Account, error) {
 	account := &models.Account{}
-	err := t.repositoryImpl.Get(ctx, account, accountID)
+	err := t.Repository.Get(ctx, account, "account_id", accountID)
 	if err != nil {
 		logger.WithCtx(ctx).Errorf("Failed to get account by id: %v", err)
 		return nil, tserrors.New(tserrors.DBError.Code, err.Error())
@@ -29,10 +29,10 @@ func (t *transactionImpl) GetAccountByID(ctx context.Context, accountID int) (*m
 	return account, nil
 }
 
-func (t *transactionImpl) CreateTransaction(ctx context.Context, transaction *models.Transaction) error {
-	return t.repositoryImpl.Create(ctx, transaction)
+func (t *transactionImpl) SaveTransaction(ctx context.Context, transaction *models.Transaction) error {
+	return t.Repository.Create(ctx, transaction)
 }
 
-func NewCardRepositoryImpl(db *gorm.DB) repository.TransactionRepository {
-	return &transactionImpl{db: db}
+func NewTransactionImpl(impl repository.Repository) repository.TransactionRepository {
+	return &transactionImpl{Repository: impl}
 }

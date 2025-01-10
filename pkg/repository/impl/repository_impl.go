@@ -37,14 +37,21 @@ func postgresURI(pgConfig config.PGConfig) string {
 
 func (impl *repositoryImpl) Create(ctx context.Context, out interface{}) error {
 	err := impl.db.Create(out).Error
+	if err != nil {
+		return tserrors.New(tserrors.DBError.Code, err.Error())
+	}
 
-	return tserrors.New(tserrors.DBError.Code, err.Error())
+	return nil
 }
 
-func (impl *repositoryImpl) Get(ctx context.Context, out interface{}, id interface{}) error {
-	err := impl.db.First(out, "id = ?", id).Error
+func (impl *repositoryImpl) Get(ctx context.Context, out interface{}, key string, id interface{}) error {
+	err := impl.db.First(out, key+" = ?", id).Error
 
-	return tserrors.New(tserrors.DBError.Code, err.Error())
+	if err != nil {
+		return tserrors.New(tserrors.DBError.Code, err.Error())
+	}
+
+	return nil
 }
 
 func (impl *repositoryImpl) Update(ctx context.Context, out interface{}, id interface{}) error {

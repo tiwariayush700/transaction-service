@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+  database:
+    image: postgres:latest
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_USER: transaction_user
+      POSTGRES_PASSWORD: defaultpassword
+      POSTGRES_MULTIPLE_DATABASES: transaction_db,transaction_db_test
+      POSTGRES_SCHEMAS: transaction,test
+    volumes:
+      - ./.postgresql-data:/var/lib/postgresql/data/ # persist data even if container shuts down

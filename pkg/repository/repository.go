@@ -7,7 +7,7 @@ import (
 
 type Repository interface {
 	Create(ctx context.Context, out interface{}) error
-	Get(ctx context.Context, out interface{}, id interface{}) error
+	Get(ctx context.Context, out interface{}, key string, id interface{}) error
 	Update(ctx context.Context, out interface{}, id interface{}) error
 	Delete(ctx context.Context, out interface{}, id interface{}) error //soft delete
 }

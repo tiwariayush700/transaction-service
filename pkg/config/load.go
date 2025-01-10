@@ -1,12 +1,9 @@
 package config
 
 import (
-	"encoding/json"
-	"flag"
 	"log"
 	"os"
 	"sync"
-	"transaction-service/pkg/constants"
 )
 
 const defaultLogLevel = "info"
@@ -28,54 +25,22 @@ type PGConfig struct {
 
 var (
 	configuration *Config
-	configFile    *string
 	once          sync.Once
 )
-
-// defined all the required flags
-func init() {
-	configFile = flag.String(constants.File, constants.DefaultConfig, constants.FileUsage)
-}
 
 func ResetConfiguration() {
 	configuration = nil
 }
 
 func LoadAppConfiguration() {
-	flag.Parse()
-
-	if len(*configFile) == 0 {
-		StopService("Mandatory arguments not provided for executing the App")
-	}
-
-	configuration = loadConfiguration(*configFile)
-}
-
-func loadConfiguration(filename string) *Config {
-	configFile, err := os.Open(filename)
-
-	if err != nil {
-		StopService(err.Error())
-	}
-
-	defer configFile.Close()
-	jsonParser := json.NewDecoder(configFile)
-	e := jsonParser.Decode(&configuration)
-
-	if e != nil {
-		log.Println("Failed to parse configuration file")
-		StopService(e.Error())
-	}
-
-	setDefaultConfig()
-
-	return configuration
+	configuration = &Config{}
+	loadEnvData()
 }
 
 func GetAppConfiguration() *Config {
 	once.Do(func() {
 		if configuration == nil {
-			log.Println("Unable to get the app configuration. Loading freshly. \t")
+			log.Println("Unable to get the app configuration. Loading freshly.")
 			LoadAppConfiguration()
 		}
 	})
@@ -94,8 +59,20 @@ func StopService(message string) {
 	log.Fatal(message)
 }
 
-func setDefaultConfig() {
-	if configuration.LogLevel == "" {
-		configuration.LogLevel = defaultLogLevel
+func loadEnvData() {
+	configuration.Port = getEnvOrDefault("PORT", "8000")
+	configuration.LogLevel = getEnvOrDefault("LOG_LEVEL", defaultLogLevel)
+	configuration.PostgresUser = getEnvOrDefault("POSTGRES_USER", "transaction_user")
+	configuration.PostgresPassword = getEnvOrDefault("POSTGRES_PASSWORD", "defaultpassword")
+	configuration.PostgresServer = getEnvOrDefault("POSTGRES_SERVER", "localhost")
+	configuration.PostgresPort = getEnvOrDefault("POSTGRES_PORT", "5432")
+	configuration.PostgresDB = getEnvOrDefault("POSTGRES_DB", "transaction_db")
+	configuration.TestPostgresDB = getEnvOrDefault("TEST_POSTGRES_DB", "transaction_db_test")
+}
+
+func getEnvOrDefault(envKey, defaultValue string) string {
+	if value, exists := os.LookupEnv(envKey); exists {
+		return value
 	}
+	return defaultValue
 }
