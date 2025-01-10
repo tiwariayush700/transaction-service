@@ -3,7 +3,7 @@ services:
   database:
     image: postgres:latest
     ports:
-      - "5431:5432"
+      - "5432:5432"
     environment:
       POSTGRES_USER: transaction_user
       POSTGRES_PASSWORD: defaultpassword

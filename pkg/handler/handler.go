@@ -24,6 +24,7 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var account models.Account
 	if err := json.NewDecoder(r.Body).Decode(&account); err != nil {
+		logger.WithCtx(ctx).Errorf("Failed to decode request body: %v", err)
 		respondWithJSON(w, http.StatusBadRequest, models.Response{Status: "error", Message: "Invalid request payload"})
 		return
 	}
@@ -34,7 +35,7 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, models.Response{Status: "success", Message: "Account created successfully", Data: account})
+	respondWithJSON(w, http.StatusCreated, models.Response{Status: "success", Message: "Account created successfully", Data: account, Code: 0})
 }
 
 func (h *Handler) GetAccountByID(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +54,7 @@ func (h *Handler) GetAccountByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, models.Response{Status: "success", Message: "Account retrieved successfully", Data: account})
+	respondWithJSON(w, http.StatusOK, models.Response{Status: "success", Message: "Account retrieved successfully", Data: account, Code: 0})
 }
 
 func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +71,7 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, models.Response{Status: "success", Message: "Transaction created successfully", Data: transaction})
+	respondWithJSON(w, http.StatusCreated, models.Response{Status: "success", Message: "Transaction created successfully", Data: transaction, Code: 0})
 }
 
 func respondWithJSON(w http.ResponseWriter, status int, response models.Response) {
@@ -81,7 +82,7 @@ func respondWithJSON(w http.ResponseWriter, status int, response models.Response
 
 func respondWithError(w http.ResponseWriter, err error) {
 	if tsErr, ok := err.(*tserrors.Error); ok {
-		respondWithJSON(w, tsErr.Code, models.Response{Status: "error", Message: tsErr.Error()})
+		respondWithJSON(w, http.StatusOK, models.Response{Status: "error", Message: tsErr.Error(), Code: tsErr.Code})
 	} else {
 		respondWithJSON(w, http.StatusInternalServerError, models.Response{Status: "error", Message: err.Error()})
 	}
