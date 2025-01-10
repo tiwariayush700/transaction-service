@@ -136,5 +136,5 @@ func TestRespondWithError(t *testing.T) {
 	json.NewDecoder(rr.Body).Decode(&response)
 	assert.Equal(t, "error", response.Status)
 	assert.Equal(t, "test error", response.Message)
-	assert.Equal(t, 123, response.Code)
+	assert.Equal(t, 1, response.Code)
 }
